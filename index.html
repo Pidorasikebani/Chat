@@ -1,23 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Глеб пидор конченый</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Чат </title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Шкибиди</h1>
-    <div id="login-section">
-        <label for="nickname">Введите ник:</label>
-        <input type="text" id="nickname">
-        <button id="login-btn">Войти</button>
-    </div>
-    <div id="chat-section" style="display: none;">
-        <div id="chat-box"></div>
-        <input type="text" id="message" placeholder="Введите сообщение">
-        <button id="send-btn">Отправить</button>
-    </div>
-    <script src="app.js"></script>
+  <div class="chat-container">
+    <h1>Чат</h1>
+    <input type="text" id="nickname" placeholder="Введите ваш ник" required/>
+    <textarea id="message" placeholder="Введите ваше сообщение" required></textarea>
+    <button id="sendMessage">Отправить</button>
+
+    <ul id="messageList"></ul>
+  </div>
+
+  <script type="module">
+    // Импортируем необходимые функции из SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+    // Конфигурация Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXrTHvQYbnAgeReBBt_4VH7hoP2rH7CcU",
+      authDomain: "chat-754bb.firebaseapp.com",
+      projectId: "chat-754bb",
+      storageBucket: "chat-754bb.firebasestorage.app",
+      messagingSenderId: "818088967623",
+      appId: "1:818088967623:web:2f59cbc49892657290ede2",
+      measurementId: "G-JBV9V0CY77"
+    };
+
+    // Инициализация Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+
+    // Элементы DOM
+    const nicknameInput = document.getElementById('nickname');
+    const messageInput = document.getElementById('message');
+    const sendMessageButton = document.getElementById('sendMessage');
+    const messageList = document.getElementById('messageList');
+
+    // Функция для отправки сообщений
+    sendMessageButton.addEventListener('click', function() {
+      const nickname = nicknameInput.value;
+      const message = messageInput.value;
+      if (nickname && message) {
+        // Добавляем сообщение в Firebase Realtime Database
+        const newMessageRef = ref(db, 'messages/' + Date.now());
+        set(newMessageRef, {
+          nickname: nickname,
+          message: message,
+          timestamp: Date.now()
+        });
+
+        // Очищаем поле ввода
+        messageInput.value = '';
+      } else {
+        alert('Пожалуйста, заполните все поля');
+      }
+    });
+
+    // Функция для получения сообщений
+    function loadMessages() {
+      const messagesRef = ref(db, 'messages/');
+      get(messagesRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          const messages = snapshot.val();
+          messageList.innerHTML = ''; // Очистить список сообщений
+          for (let key in messages) {
+            const message = messages[key];
+            const li = document.createElement('li');
+            li.textContent = `${message.nickname}: ${message.message}`;
+            messageList.appendChild(li);
+          }
+        } else {
+          console.log('Нет сообщений');
+        }
+      }).catch((error) => {
+        console.error(error);
+      });
+    }
+
+    // Загружаем сообщения при инициализации
+    loadMessages();
+
+    // Автоматически обновлять сообщения каждый раз, когда что-то добавляется
+    setInterval(loadMessages, 5000);  // Обновление сообщений каждую секунду (можно изменить на 10000 для 10 секунд)
+  </script>
 </body>
 </html>
