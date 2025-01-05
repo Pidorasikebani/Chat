@@ -3,17 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Чат </title>
+  <title>Чат</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="chat-container">
+  <!-- Ввод ника -->
+  <div id="nicknameSection" class="nickname-section">
+    <h1>Введите ваш ник</h1>
+    <input type="text" id="nickname" placeholder="Ваш ник" required />
+    <button id="startChatButton">Войти в чат</button>
+  </div>
+
+  <!-- Чат -->
+  <div id="chatSection" class="chat-section" style="display: none;">
     <h1>Чат</h1>
-    <input type="text" id="nickname" placeholder="Введите ваш ник" required/>
+    <ul id="messageList"></ul>
     <textarea id="message" placeholder="Введите ваше сообщение" required></textarea>
     <button id="sendMessage">Отправить</button>
-
-    <ul id="messageList"></ul>
   </div>
 
   <script type="module">
@@ -40,14 +46,34 @@
 
     // Элементы DOM
     const nicknameInput = document.getElementById('nickname');
+    const nicknameSection = document.getElementById('nicknameSection');
+    const chatSection = document.getElementById('chatSection');
     const messageInput = document.getElementById('message');
     const sendMessageButton = document.getElementById('sendMessage');
     const messageList = document.getElementById('messageList');
+    const startChatButton = document.getElementById('startChatButton');
+
+    let nickname = '';
+
+    // Функция для начала чата
+    startChatButton.addEventListener('click', function() {
+      nickname = nicknameInput.value.trim();
+      if (nickname) {
+        // Скрываем секцию ввода ника
+        nicknameSection.style.display = 'none';
+        // Показываем чат
+        chatSection.style.display = 'block';
+
+        // Загружаем сообщения
+        loadMessages();
+      } else {
+        alert('Пожалуйста, введите ваш ник');
+      }
+    });
 
     // Функция для отправки сообщений
     sendMessageButton.addEventListener('click', function() {
-      const nickname = nicknameInput.value;
-      const message = messageInput.value;
+      const message = messageInput.value.trim();
       if (nickname && message) {
         // Добавляем сообщение в Firebase Realtime Database
         const newMessageRef = ref(db, 'messages/' + Date.now());
